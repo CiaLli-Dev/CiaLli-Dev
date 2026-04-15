@@ -1,0 +1,30 @@
+---
+import type { NavigationData } from "../data/types";
+
+const { navigation, hoverPrefix = "CiaLli†" } = Astro.props as {
+  navigation: NavigationData;
+  hoverPrefix?: string;
+};
+
+function isExternal(url: string): boolean {
+  return /^https?:\/\//.test(url);
+}
+---
+
+<header class="site-nav" data-reveal>
+  <a class="site-nav__brand" href="/">{navigation.brand}</a>
+  <nav class="site-nav__links" aria-label="主导航">
+    {
+      navigation.links.map((link) => (
+        <a
+          href={link.url}
+          target={isExternal(link.url) ? "_blank" : undefined}
+          rel={isExternal(link.url) ? "noopener noreferrer" : undefined}
+          data-hover-prefix={hoverPrefix}
+        >
+          {link.label}
+        </a>
+      ))
+    }
+  </nav>
+</header>

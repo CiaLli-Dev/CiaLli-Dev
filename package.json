@@ -1,0 +1,26 @@
+{
+  "type": "module",
+  "scripts": {
+    "prepare": "vp config",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "vp check",
+    "check:astro": "astro check",
+    "check:site": "vp check && astro check",
+    "test": "vp test"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "simple-icons": "^16.16.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "astro": "^6.1.6",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "vite-plus": "catalog:"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

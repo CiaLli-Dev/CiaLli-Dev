@@ -1,0 +1,167 @@
+---
+import type { FaqData } from "../data/types";
+
+const { faq } = Astro.props as { faq: FaqData };
+---
+
+<section class="md-section faq-section" id="faq">
+  <div class="faq-wrapper">
+    <h2 class="faq-title">{faq.title}</h2>
+    <div class="faq-accordion">
+      {
+        faq.items.map((item) => (
+          <details class="faq-accordion-item">
+            <summary class="faq-summary">
+              <span class="faq-summary__text">{item.question}</span>
+              <span class="faq-plus">+</span>
+            </summary>
+            <div class="faq-accordion-body">
+              <div class="faq-accordion-content">
+                {item.paragraphs.map((paragraph) => (paragraph === "" ? <div class="faq-spacer"></div> : <p>{paragraph}</p>))}
+                {item.list && (
+                  <ul class="faq-list">
+                    {item.list.map((line) => (
+                      <li>{line}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  class FaqAccordionItem {
+    item: HTMLDetailsElement;
+    summary: HTMLElement;
+    body: HTMLElement;
+    animation: Animation | null;
+    isClosing: boolean;
+    isExpanding: boolean;
+    prefersReducedMotion: MediaQueryList;
+
+    constructor(item: HTMLDetailsElement, prefersReducedMotion: MediaQueryList) {
+      this.item = item;
+      this.summary = item.querySelector("summary")!;
+      this.body = item.querySelector(".faq-accordion-body")!;
+      this.animation = null;
+      this.isClosing = false;
+      this.isExpanding = false;
+      this.prefersReducedMotion = prefersReducedMotion;
+
+      this.summary.addEventListener("click", (event) => this.onClick(event));
+    }
+
+    onClick(event: MouseEvent) {
+      event.preventDefault();
+
+      if (this.prefersReducedMotion.matches) {
+        this.toggleInstantly();
+        return;
+      }
+
+      this.item.style.overflow = "clip";
+      if (this.isClosing || !this.item.open) {
+        this.open();
+      } else {
+        this.close();
+      }
+    }
+
+    open() {
+      this.item.classList.remove("is-closing");
+      this.item.classList.add("is-opening");
+
+      const startHeight = `${this.item.offsetHeight}px`;
+      this.item.style.height = startHeight;
+      this.item.open = true;
+
+      window.requestAnimationFrame(() => {
+        const endHeight = `${this.summary.offsetHeight + this.body.offsetHeight}px`;
+        this.animateHeight(startHeight, endHeight, true);
+      });
+    }
+
+    close() {
+      this.item.classList.remove("is-opening");
+      this.item.classList.add("is-closing");
+
+      const startHeight = `${this.item.offsetHeight}px`;
+      const endHeight = `${this.summary.offsetHeight}px`;
+      this.animateHeight(startHeight, endHeight, false);
+    }
+
+    animateHeight(startHeight: string, endHeight: string, open: boolean) {
+      this.animation?.cancel();
+      this.isClosing = !open;
+      this.isExpanding = open;
+
+      this.animation = this.item.animate(
+        { height: [startHeight, endHeight] },
+        { duration: 250, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
+      );
+
+      this.animation.onfinish = () => this.onAnimationFinish(open);
+      this.animation.oncancel = () => {
+        this.isClosing = false;
+        this.isExpanding = false;
+      };
+    }
+
+    onAnimationFinish(open: boolean) {
+      this.item.open = open;
+      this.item.style.height = "";
+      this.item.style.overflow = "";
+      this.item.classList.toggle("is-opening", open);
+      this.item.classList.toggle("is-closing", !open);
+      this.animation = null;
+      this.isClosing = false;
+      this.isExpanding = false;
+    }
+
+    closeInstantly() {
+      this.animation?.cancel();
+      this.item.open = false;
+      this.item.style.height = "";
+      this.item.style.overflow = "";
+      this.item.classList.remove("is-opening", "is-closing");
+      this.isClosing = false;
+      this.isExpanding = false;
+    }
+
+    toggleInstantly() {
+      const willOpen = !this.item.open;
+      this.item.open = willOpen;
+      this.item.classList.toggle("is-opening", willOpen);
+      this.item.classList.toggle("is-closing", !willOpen);
+    }
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const instances = Array.from(document.querySelectorAll<HTMLDetailsElement>(".faq-accordion-item")).map(
+    (item) => new FaqAccordionItem(item, prefersReducedMotion)
+  );
+
+  instances.forEach((instance) => {
+    instance.summary.addEventListener("click", () => {
+      const willOpen = !instance.item.open || instance.isClosing;
+      if (!willOpen) {
+        return;
+      }
+
+      instances.forEach((other) => {
+        if (other !== instance && (other.item.open || other.isExpanding)) {
+          if (prefersReducedMotion.matches) {
+            other.closeInstantly();
+          } else {
+            other.close();
+          }
+        }
+      });
+    });
+  });
+</script>

@@ -1,0 +1,63 @@
+---
+import "../styles/global.css";
+import defaultOgImage from "../assets/hero-light.png";
+import defaultFavicon from "../assets/cialli-brand-mark.png";
+
+const title = String(Astro.props.title ?? "站点公告");
+const description = String(
+  Astro.props.description ?? "CQUT 课程攻略共享计划镜像站公告页，提供最新地址、站点状态、FAQ、贡献方式与更新日志。"
+);
+const ogImageProp = Astro.props.ogImage ?? defaultOgImage;
+const ogImagePath = typeof ogImageProp === "string" ? ogImageProp : ogImageProp.src;
+const siteBaseUrl = Astro.site?.toString();
+const canonical = siteBaseUrl ? new URL(Astro.url.pathname, siteBaseUrl).toString() : undefined;
+const ogImage = siteBaseUrl ? new URL(ogImagePath, siteBaseUrl).toString() : ogImagePath;
+const faviconPath = defaultFavicon.src;
+const faviconFormat = defaultFavicon.format ?? "png";
+const faviconType = faviconFormat === "svg" ? "image/svg+xml" : `image/${faviconFormat}`;
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600;700&display=swap"
+    />
+    <link rel="icon" href={faviconPath} type={faviconType} />
+    <script>
+      import { initTheme, startSystemThemeSync } from "../scripts/theme";
+
+      initTheme();
+      startSystemThemeSync();
+    </script>
+  </head>
+  <body>
+    <slot />
+    <script>
+      import { inject } from "@vercel/analytics";
+
+      const isLocalPreview = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+      if (!isLocalPreview) {
+        inject();
+      }
+    </script>
+  </body>
+</html>

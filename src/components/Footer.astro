@@ -1,0 +1,557 @@
+---
+import { getImage } from "astro:assets";
+import brandMarkImage from "../assets/cialli-brand-mark.png";
+import Icon from "./Icon.astro";
+import { siBilibili } from "simple-icons";
+
+const [footerLogo80Avif, footerLogo80Png] = await Promise.all([
+  getImage({ src: brandMarkImage, width: 80, format: "avif" }),
+  getImage({ src: brandMarkImage, width: 80, format: "png" }),
+]);
+---
+
+<footer class="site-footer--dark">
+  <div class="site-footer--dark__container">
+    <div class="site-footer--dark__top">
+      <picture>
+        <source type="image/avif" srcset={footerLogo80Avif.src} />
+        <img
+          src={footerLogo80Png.src}
+          alt="CiaLli†Dev"
+          class="site-footer--dark__top-img"
+          loading="lazy"
+          decoding="async"
+          width="40"
+          height="40"
+        />
+      </picture>
+      <span class="site-footer--dark__top-text">CiaLli†Dev</span>
+    </div>
+    <div class="site-footer--dark__inner">
+      <div class="site-footer--dark__left">
+        <div class="site-footer--dark__title">
+          <h2>BY CiaLli†</h2>
+          <p class="copyright">
+            © {new Date().getFullYear()} CiaLli†. All Rights Reserved.
+          </p>
+        </div>
+
+        <div class="site-footer--dark__socials">
+          <a
+            href="https://space.bilibili.com/3546973084846675"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Bilibili"
+          >
+            <span aria-hidden="true" set:html={siBilibili.svg}></span>
+          </a>
+        </div>
+      </div>
+
+      <div class="site-footer--dark__middle" id="promo-content">
+        <div class="promo-card">
+          <h4>
+            <a href="https://github.com/CQUT-OpenProject" target="_blank" rel="noopener noreferrer">
+              <span>重庆理工大学开源计划</span>
+              <Icon name="arrow-up-right" class="promo-card__link-icon" />
+            </a>
+          </h4>
+          <p>GitHub 组织，后续可能考虑将仓库迁移至此组织，欢迎加入组织参与维护、新增或贡献项目。</p>
+        </div>
+        <div class="promo-card">
+          <h4>
+            <a href="https://qm.qq.com/q/BGLoVSxKzm" target="_blank" rel="noopener noreferrer">
+              <span>CQUT 音游同好会</span>
+              <Icon name="arrow-up-right" class="promo-card__link-icon" />
+            </a>
+          </h4>
+          <p>重庆理工大学音乐游戏交流群，在这里你可以和校友交流包括但不限于 osu、malody、maidx、chunithm、arcaea、phigros、taiko、sdvx 的游戏心得。</p>
+        </div>
+        <div class="promo-card">
+          <h4>
+            <a href="https://qm.qq.com/q/Jd9f12DIw8" target="_blank" rel="noopener noreferrer">
+              <span>两江4栋打印服务</span>
+              <Icon name="arrow-up-right" class="promo-card__link-icon" />
+            </a>
+          </h4>
+          <p>黑白单面0.3、双面0.5；彩色单面0.5、双面0.8（群内赞助、广告勿理）</p>
+        </div>
+      </div>
+
+      <div class="site-footer--dark__right">
+        <div class="site-footer--dark__join">
+          <button
+            id="promo-toggle"
+            class="promo-btn"
+            type="button"
+            aria-controls="promo-content"
+            aria-expanded="false"
+            data-promo-toggle
+            data-promo-target="promo-content"
+          >
+            推广区
+          </button>
+        </div>
+        <div class="site-footer--dark__join">
+          <h3>
+            <a href="https://qm.qq.com/q/xBApOTaLSg" target="_blank" rel="noopener noreferrer">
+              <span>加入我们</span>
+            </a>
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const promoToggles = document.querySelectorAll<HTMLButtonElement>("[data-promo-toggle]");
+
+  promoToggles.forEach((promoToggle) => {
+    const targetId = promoToggle.dataset.promoTarget;
+    const promoContent = targetId ? document.getElementById(targetId) : null;
+
+    if (!promoContent) {
+      return;
+    }
+
+    promoToggle.addEventListener("click", () => {
+      promoContent.classList.toggle("is-visible");
+      promoToggle.setAttribute("aria-expanded", String(promoContent.classList.contains("is-visible")));
+    });
+  });
+</script>
+
+<style>
+  .site-footer--dark {
+    --footer-social-size: 1.5rem;
+    background-color: #000 !important;
+    color: #fff !important;
+    padding: 6rem 0 4rem;
+    font-family: var(--font-sans);
+    border-top: 1px solid #333;
+    margin-top: 4rem;
+  }
+
+  .site-footer--dark__container {
+    width: var(--layout-width, min(100%, 1200px));
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 15rem;
+  }
+
+  .site-footer--dark__top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: auto;
+  }
+
+  .site-footer--dark__top picture {
+    display: flex;
+    align-items: center;
+  }
+
+  .site-footer--dark__top-img {
+    height: 2.5rem;
+    width: auto;
+    border-radius: 6px;
+    object-fit: contain;
+    transform: translateY(-3px);
+  }
+
+  .site-footer--dark__top-text {
+    font-family: var(--font-display);
+    font-size: clamp(1.45rem, 1.35rem + 0.5vw, 1.85rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: #fff;
+  }
+
+  .site-footer--dark__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: flex-end;
+    gap: 2rem;
+    margin-top: 4rem;
+  }
+
+  .site-footer--dark__inner > * {
+    min-width: 0;
+  }
+
+  .site-footer--dark__left {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    flex: 0 1 18rem;
+  }
+
+  .site-footer--dark__title h2 {
+    display: inline-block;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 0.95;
+    margin: 0 0 0.14rem;
+    letter-spacing: 0.1em;
+    color: #888 !important;
+    text-transform: uppercase;
+    transform: scaleY(0.9);
+    transform-origin: left bottom;
+  }
+
+  .site-footer--dark__title .copyright {
+    font-size: 0.75rem;
+    line-height: 1.05;
+    color: #888 !important;
+    margin: 0 0 1.5rem;
+  }
+
+  .site-footer--dark__socials {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .site-footer--dark__socials a {
+    color: #888 !important;
+    text-decoration: none;
+    font-size: 1.25rem;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .site-footer--dark__socials a:hover {
+    color: #fff !important;
+  }
+
+  /* 推广区中间布局 */
+  .site-footer--dark__middle {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    --promo-shift-x: -50%;
+    --promo-shift-y: 0.75rem;
+    transform: translateX(var(--promo-shift-x)) translateY(var(--promo-shift-y));
+    width: min(32rem, calc(100% - 28rem));
+    min-width: min(18rem, calc(100% - 2rem));
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 10;
+    transition:
+      opacity 0.24s ease,
+      transform 0.24s ease,
+      visibility 0s linear 0.24s;
+  }
+
+  .site-footer--dark__middle.is-visible {
+    --promo-shift-y: 0;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+
+  .promo-card h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.95rem;
+    color: #fff;
+    overflow-wrap: anywhere;
+  }
+  
+  .promo-card h4 a,
+  .site-footer--dark__join ul a {
+    position: relative;
+    text-decoration: none;
+  }
+
+  .promo-card h4 a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.36rem;
+    color: #fff;
+  }
+
+  .site-footer--dark__join ul a {
+    display: inline-block;
+  }
+
+  .promo-card__link-icon {
+    width: 0.95em;
+    height: 0.95em;
+    transform: translateY(0.02em);
+  }
+
+  .promo-card h4 a::after,
+  .site-footer--dark__join ul a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0.08em;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--motion-standard);
+  }
+  
+  .promo-card h4 a:hover::after,
+  .promo-card h4 a:focus-visible::after,
+  .site-footer--dark__join ul a:hover::after,
+  .site-footer--dark__join ul a:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  .promo-card p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #aaa;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .site-footer--dark__right {
+    display: grid;
+    justify-items: end;
+    align-content: end;
+    align-self: end;
+    gap: 1.5rem;
+    width: max-content;
+    min-width: 0;
+    transform: translateY(-0.7rem);
+  }
+
+  .promo-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #888 !important;
+    transition: color 0.2s ease;
+    padding: 0;
+    font-family: inherit;
+    line-height: 1;
+    transform: translateY(0.5rem);
+  }
+  
+  .promo-btn:hover {
+    color: #fff !important;
+  }
+
+  .site-footer--dark__join h3 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1;
+    color: #fff !important;
+  }
+
+  .site-footer--dark__join:last-child {
+    min-height: var(--footer-social-size);
+    display: flex;
+    align-items: flex-end;
+  }
+  
+  .site-footer--dark__join h3 a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.36rem;
+    color: #888 !important;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .footer-link__icon {
+    width: 0.95em;
+    height: 0.95em;
+    transform: translateY(0.02em);
+  }
+
+  .site-footer--dark__join h3 a:hover,
+  .site-footer--dark__join h3 a:focus-visible {
+    color: #fff !important;
+  }
+
+  .site-footer--dark__join ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .site-footer--dark__join a {
+    color: #888 !important;
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+
+  .site-footer--dark__socials a :global(svg) {
+    width: var(--footer-social-size);
+    height: var(--footer-social-size);
+    fill: currentColor;
+  }
+
+  @media (max-width: 900px) {
+    .site-footer--dark {
+      padding: 5rem 0 3.5rem;
+    }
+
+    .site-footer--dark__container {
+      min-height: auto;
+    }
+
+    .site-footer--dark__inner {
+      grid-template-columns: 1fr;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+
+    .site-footer--dark__left,
+    .site-footer--dark__right {
+      width: 100%;
+      max-width: none;
+    }
+
+    .site-footer--dark__left {
+      order: 4;
+    }
+
+    .site-footer--dark__middle {
+      position: static;
+      left: auto;
+      top: auto;
+      width: 100%;
+      min-width: 0;
+      transform: none;
+      display: none;
+      padding-right: 0;
+      margin-top: 0.25rem;
+      transition: none;
+    }
+
+    .site-footer--dark__middle.is-visible {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .site-footer--dark__right {
+      order: 2;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0;
+      width: 100%;
+      transform: none;
+    }
+
+    .site-footer--dark__middle {
+      order: 3;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .site-footer--dark {
+      --footer-social-size: 1.35rem;
+      padding: 4rem 0 3rem;
+      margin-top: 3rem;
+    }
+
+    .site-footer--dark__top {
+      gap: 0.75rem;
+    }
+
+    .site-footer--dark__top-img {
+      height: 2rem;
+    }
+
+    .site-footer--dark__top-text {
+      font-size: clamp(1.15rem, 1rem + 0.5vw, 1.35rem);
+    }
+
+    .site-footer--dark__inner {
+      margin-top: 2.5rem;
+      gap: 1.25rem;
+    }
+
+    .site-footer--dark__title h2 {
+      font-size: 1rem;
+    }
+
+    .site-footer--dark__title .copyright {
+      margin-bottom: 1rem;
+      font-size: 0.72rem;
+    }
+
+    .site-footer--dark__socials {
+      gap: 1rem;
+    }
+
+    .site-footer--dark__socials a :global(svg) {
+      width: 1.35rem;
+      height: 1.35rem;
+    }
+
+    .site-footer--dark__right {
+      column-gap: 1rem;
+      row-gap: 0.5rem;
+    }
+
+    .site-footer--dark__join {
+      display: flex;
+      align-items: center;
+      min-height: auto;
+    }
+
+    .site-footer--dark__join:last-child {
+      min-height: auto;
+      align-items: center;
+    }
+
+    .site-footer--dark__left {
+      gap: 0.85rem;
+    }
+
+    .site-footer--dark__title .copyright {
+      margin-bottom: 0;
+    }
+
+    .promo-btn,
+    .site-footer--dark__join h3,
+    .site-footer--dark__join h3 a,
+    .site-footer--dark__join a {
+      font-size: 0.8125rem;
+      line-height: 1;
+    }
+
+    .promo-btn {
+      transform: none;
+    }
+
+    .promo-card h4 {
+      font-size: 0.9rem;
+    }
+
+    .promo-card p {
+      font-size: 0.78rem;
+    }
+  }
+</style>

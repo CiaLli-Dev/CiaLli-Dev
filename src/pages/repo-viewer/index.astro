@@ -1,0 +1,988 @@
+---
+import { getImage } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Footer from "../../components/Footer.astro";
+import Icon from "../../components/Icon.astro";
+import SiteNav from "../../components/SiteNav.astro";
+import heroDarkImage from "../../assets/hero-dark.png";
+import heroLightImage from "../../assets/hero-light.png";
+import browserShotImage from "../../assets/repo-viewer-browser.png";
+import previewShotImage from "../../assets/repo-viewer-preview.png";
+import searchShotImage from "../../assets/repo-viewer-search.png";
+import { repoViewerProduct } from "../../data/repo-viewer-product";
+import type { ImageMetadata } from "astro";
+
+const product = repoViewerProduct;
+
+const actionClass: Record<"primary" | "secondary" | "text", string> = {
+  primary: "button button--filled",
+  secondary: "button button--tonal",
+  text: "button button--text",
+};
+
+const shotImages = [
+  { ...product.shots[0], image: browserShotImage },
+  { ...product.shots[1], image: searchShotImage },
+  { ...product.shots[2], image: previewShotImage },
+];
+
+const heroWidths = [420, 760, 1120] as const;
+const heroSizes = "(min-width: 1080px) 520px, (min-width: 901px) 44vw, 100vw";
+
+const createSrcSet = (sources: { src: string }[]) =>
+  sources.map((source, index) => `${source.src} ${heroWidths[index]}w`).join(", ");
+
+async function getHeroSources(src: ImageMetadata) {
+  const [avifSources, pngSources] = await Promise.all([
+    Promise.all(heroWidths.map((width) => getImage({ src, width, format: "avif" }))),
+    Promise.all(heroWidths.map((width) => getImage({ src, width, format: "png" }))),
+  ]);
+
+  return {
+    avifSrcSet: createSrcSet(avifSources),
+    pngSrcSet: createSrcSet(pngSources),
+    fallbackSrc: pngSources[1].src,
+  };
+}
+
+async function getShotSources(src: ImageMetadata) {
+  const width = Math.min(src.width, 560);
+  const [avifSource, pngSource] = await Promise.all([
+    getImage({ src, width, format: "avif" }),
+    getImage({ src, width, format: "png" }),
+  ]);
+
+  return {
+    avifSrc: avifSource.src,
+    pngSrc: pngSource.src,
+    width: src.width,
+    height: src.height,
+  };
+}
+
+const [heroDarkSources, heroLightSources] = await Promise.all([
+  getHeroSources(heroDarkImage),
+  getHeroSources(heroLightImage),
+]);
+
+const productShots = await Promise.all(
+  shotImages.map(async (shot) => ({
+    ...shot,
+    sources: await getShotSources(shot.image),
+  }))
+);
+
+function isExternal(url: string): boolean {
+  return /^https?:\/\//.test(url);
+}
+---
+
+<BaseLayout
+  title="Repo Viewer｜CiaLli†Dev"
+  description="Repo Viewer 是基于 Material Design 3 的 GitHub 仓库浏览应用，为 CQUT 课程资料仓库提供浏览、搜索、预览与下载体验。"
+>
+  <div class="app-shell">
+    <SiteNav navigation={product.navigation} />
+
+    <main class="main-layout product-main">
+      <section class="product-hero" data-reveal style="--delay: 40ms;">
+        <div class="product-hero__content">
+          <p class="overline">{product.hero.eyebrow}</p>
+          <h1>{product.hero.title}</h1>
+          <p class="product-hero__summary">{product.hero.summary}</p>
+          <div class="product-hero__actions" aria-label="Repo Viewer 入口">
+            {
+              product.hero.actions.map((action) => (
+                <a
+                  class={actionClass[action.variant]}
+                  href={action.url}
+                  target={isExternal(action.url) ? "_blank" : undefined}
+                  rel={isExternal(action.url) ? "noopener noreferrer" : undefined}
+                >
+                  <span>{action.label}</span>
+                  {action.variant === "text" ? "" : <Icon name="arrow-up-right" />}
+                </a>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="product-hero__visual" aria-label="Repo Viewer 产品界面">
+          <picture>
+            <source
+              media="(prefers-color-scheme: dark)"
+              type="image/avif"
+              srcset={heroDarkSources.avifSrcSet}
+              sizes={heroSizes}
+            />
+            <source
+              media="(prefers-color-scheme: dark)"
+              type="image/png"
+              srcset={heroDarkSources.pngSrcSet}
+              sizes={heroSizes}
+            />
+            <source type="image/avif" srcset={heroLightSources.avifSrcSet} sizes={heroSizes} />
+            <source type="image/png" srcset={heroLightSources.pngSrcSet} sizes={heroSizes} />
+            <img
+              src={heroLightSources.fallbackSrc}
+              alt="Repo Viewer 浏览课程资料仓库的整体界面截图"
+              width="1275"
+              height="1606"
+              decoding="async"
+              fetchpriority="high"
+            />
+          </picture>
+        </aside>
+      </section>
+
+      <article class="product-story">
+        <section class="product-section product-overview" data-reveal style="--delay: 80ms;">
+          <div class="product-overview__lead">
+            <h2>{product.positioning.title}</h2>
+            <p>{product.positioning.body}</p>
+          </div>
+
+          <div class="product-principles" aria-label="Repo Viewer 设计原则">
+            {
+              product.principles.map((principle, index) => (
+                <section class="product-principle">
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{principle.title}</h3>
+                  <p>{principle.body}</p>
+                </section>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="product-section product-bento" data-reveal style="--delay: 120ms;">
+          <div class="product-section__intro product-section__intro--wide">
+            <h2>浏览、搜索、预览，各有清晰的入口。</h2>
+          </div>
+          <div class="product-bento__grid">
+            {
+              productShots.map((shot, index) => (
+                <figure class={`product-shot product-shot--${index === 0 ? "large" : "compact"}`}>
+                  <figcaption>
+                    <span>{shot.title}</span>
+                    <p>{shot.caption}</p>
+                  </figcaption>
+                  <picture>
+                    <source type="image/avif" srcset={shot.sources.avifSrc} />
+                    <img
+                      src={shot.sources.pngSrc}
+                      alt={shot.alt}
+                      width={shot.sources.width}
+                      height={shot.sources.height}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
+                </figure>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="product-section product-workflow" data-reveal style="--delay: 160ms;">
+          <div class="product-section__intro">
+            <h2>从目录到答案，只保留必要步骤。</h2>
+            <p>一次常见的资料查找，被整理成三个稳定动作：进入目录、缩小范围、预览或下载。</p>
+          </div>
+          <ol class="product-workflow__steps">
+            {product.workflow.map((step) => (
+              <li>
+                <div class="product-workflow__marker" aria-hidden="true"></div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section class="product-section product-capabilities" data-reveal style="--delay: 200ms;">
+          <div class="product-section__intro product-section__intro--wide">
+            <h2>把仓库浏览与内容阅读压缩成一个清晰界面。</h2>
+          </div>
+          <div class="product-capabilities__grid">
+            {
+              product.featureGroups.map((group) => (
+                <section class="product-capability-group">
+                  <div class="product-capability-group__intro">
+                    <h3>{group.title}</h3>
+                    <p>{group.intro}</p>
+                  </div>
+                  <div class="product-feature-grid">
+                    {group.features.map((feature) => (
+                      <section class="product-feature">
+                        <h4>{feature.title}</h4>
+                        <p>{feature.body}</p>
+                      </section>
+                    ))}
+                  </div>
+                </section>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="product-section product-two-column" data-reveal style="--delay: 280ms;">
+          <div>
+            <h2>更适合课程资料的三类日常场景。</h2>
+          </div>
+          <div class="product-list">
+            {
+              product.scenarios.map((scenario) => (
+                <section class="product-list__item">
+                  <h3>{scenario.title}</h3>
+                  <p>{scenario.body}</p>
+                </section>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="product-section product-two-column" data-reveal style="--delay: 320ms;">
+          <div>
+            <h2>围绕 GitHub 访问、搜索和预览做可靠性设计。</h2>
+          </div>
+          <div class="product-list">
+            {
+              product.reliability.map((item) => (
+                <section class="product-list__item">
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                </section>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="product-section product-section--closing" data-reveal style="--delay: 360ms;">
+          <div>
+            <h2>{product.contribution.title}</h2>
+            <p>{product.contribution.body}</p>
+          </div>
+          <a
+            class="button button--filled"
+            href="https://github.com/CQUT-OpenProject/Repo-Viewer"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span>参与贡献</span>
+            <Icon name="arrow-up-right" />
+          </a>
+        </section>
+      </article>
+    </main>
+  </div>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .product-main {
+    gap: clamp(72px, 9vw, 128px);
+    margin-top: clamp(76px, 8vw, 104px);
+  }
+
+  .product-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 0.88fr) minmax(380px, 1.12fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+    min-height: min(760px, calc(100vh - 104px));
+    padding: clamp(20px, 3vw, 44px) 0 clamp(34px, 6vw, 76px);
+    isolation: isolate;
+  }
+
+  .product-hero::before {
+    content: "";
+    position: absolute;
+    inset: 10% -14% 2% 34%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        circle at 58% 38%,
+        color-mix(in srgb, var(--accent-soft) 72%, transparent) 0,
+        transparent 28%
+      ),
+      radial-gradient(
+        circle at 72% 68%,
+        color-mix(in srgb, var(--surface-highlight) 42%, transparent) 0,
+        transparent 36%
+      );
+    filter: blur(18px);
+    opacity: 0.9;
+  }
+
+  .product-hero__content {
+    width: min(100%, 650px);
+    padding-top: clamp(10px, 2vw, 28px);
+  }
+
+  .product-hero h1 {
+    margin: 16px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(3.6rem, 1.85rem + 5.4vw, 7.6rem);
+    font-weight: 600;
+    line-height: 1.03;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .product-hero__summary {
+    max-width: 44rem;
+    margin: 28px 0 0;
+    color: var(--text-muted);
+    font-size: clamp(1.05rem, 0.98rem + 0.25vw, 1.22rem);
+    line-height: 1.72;
+  }
+
+  .product-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .product-hero__actions .button {
+    min-width: min(100%, 148px);
+  }
+
+  .product-hero__visual {
+    position: relative;
+    min-width: 0;
+    width: min(100%, 610px);
+    justify-self: end;
+    overflow: clip;
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in srgb, var(--border-soft) 82%, var(--accent));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-card) 90%, white 3%),
+        color-mix(in srgb, var(--surface-card) 86%, black 4%)
+      ),
+      var(--surface-card);
+    box-shadow:
+      0 38px 110px color-mix(in srgb, #000 32%, transparent),
+      0 0 0 10px color-mix(in srgb, var(--surface-card) 20%, transparent);
+    transform: translateY(10px);
+  }
+
+  .product-hero__visual::before {
+    content: "";
+    position: absolute;
+    inset: 16px 16px auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, white 38%, transparent), transparent);
+    opacity: 0.56;
+    z-index: 1;
+  }
+
+  .product-hero__visual picture,
+  .product-hero__visual img {
+    display: block;
+    width: 100%;
+  }
+
+  .product-hero__visual img {
+    height: auto;
+    transform: scale(1.04);
+    transform-origin: top center;
+  }
+
+  .product-story {
+    display: grid;
+    gap: clamp(76px, 9vw, 132px);
+  }
+
+  .product-section {
+    width: min(100%, 980px);
+    margin: 0 auto;
+  }
+
+  .product-section h2 {
+    margin: 12px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.12rem, 1.24rem + 2.55vw, 4rem);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .product-section p {
+    margin: 20px 0 0;
+    color: var(--text-muted);
+    font-size: clamp(1rem, 0.96rem + 0.16vw, 1.08rem);
+  }
+
+  .product-section__intro {
+    position: sticky;
+    top: 112px;
+  }
+
+  .product-section__intro--wide {
+    position: static;
+    width: min(100%, 760px);
+  }
+
+  .product-section__intro h2 {
+    font-size: clamp(1.95rem, 1.18rem + 2.2vw, 3.35rem);
+  }
+
+  .product-overview {
+    display: grid;
+    gap: clamp(36px, 5vw, 60px);
+  }
+
+  .product-overview__lead {
+    width: min(100%, 820px);
+    margin: 0 auto;
+  }
+
+  .product-overview__lead > p:last-child {
+    font-size: clamp(1.08rem, 1rem + 0.32vw, 1.28rem);
+    line-height: 1.78;
+  }
+
+  .product-principles {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .product-principles::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--accent-soft) 52%, transparent),
+      transparent
+    );
+    opacity: 0.42;
+  }
+
+  .product-principle {
+    position: relative;
+    min-height: 230px;
+    padding: clamp(24px, 3vw, 36px);
+  }
+
+  .product-principle + .product-principle {
+    border-left: 1px solid color-mix(in srgb, var(--border-soft) 82%, transparent);
+  }
+
+  .product-principle span {
+    display: block;
+    margin-bottom: clamp(38px, 5vw, 66px);
+    color: color-mix(in srgb, var(--accent) 78%, var(--text-muted));
+    font-family: var(--font-display);
+    font-size: 0.96rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .product-principle h3,
+  .product-workflow__steps h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.24rem, 1.1rem + 0.5vw, 1.55rem);
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .product-principle p,
+  .product-workflow__steps p {
+    margin-top: 14px;
+    color: var(--text-muted);
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+
+  .product-bento {
+    display: grid;
+    gap: clamp(28px, 4vw, 48px);
+  }
+
+  .product-bento__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.16fr) minmax(280px, 0.84fr);
+    grid-template-rows: repeat(2, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .product-shot {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    overflow: clip;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-card) 92%, white 3%),
+        color-mix(in srgb, var(--surface-card) 88%, black 4%)
+      ),
+      var(--surface-card);
+    box-shadow: 0 22px 70px color-mix(in srgb, #000 18%, transparent);
+  }
+
+  .product-shot--large {
+    grid-row: span 2;
+    flex-direction: column;
+  }
+
+  .product-shot--compact {
+    position: relative;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .product-shot picture,
+  .product-shot img {
+    display: block;
+    width: 100%;
+  }
+
+  .product-shot img {
+    height: auto;
+  }
+
+  .product-shot--large picture {
+    margin: auto auto 0;
+    width: min(72%, 420px);
+    max-height: 470px;
+    overflow: clip;
+  }
+
+  .product-shot--large img {
+    transform: translateY(2%);
+  }
+
+  .product-shot--compact picture {
+    width: 49%;
+    min-width: 200px;
+    margin: auto 0 0;
+    align-self: flex-end;
+    overflow: clip;
+  }
+
+  .product-shot--compact img {
+    transform: none;
+    transform-origin: bottom center;
+  }
+
+  .product-shot figcaption {
+    margin: 0;
+    padding: clamp(22px, 3vw, 32px);
+    color: var(--text-muted);
+    font-size: 0.98rem;
+    line-height: 1.62;
+  }
+
+  .product-shot--large figcaption {
+    max-width: 560px;
+  }
+
+  .product-shot--compact figcaption {
+    width: 51%;
+    align-self: center;
+  }
+
+  .product-shot figcaption span {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-main);
+    font-family: var(--font-display);
+    font-size: clamp(1.38rem, 1.1rem + 0.9vw, 2rem);
+    font-weight: 500;
+    line-height: 1.12;
+  }
+
+  .product-shot figcaption p {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.68;
+  }
+
+  .product-workflow {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    gap: clamp(28px, 5vw, 72px);
+    align-items: start;
+  }
+
+  .product-workflow__steps {
+    counter-reset: workflow;
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .product-workflow__steps li {
+    counter-increment: workflow;
+    position: relative;
+    min-height: 172px;
+    padding: 28px 4px 28px 86px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .product-workflow__steps li::before {
+    content: counter(workflow, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 31px;
+    color: color-mix(in srgb, var(--accent) 90%, var(--text-main));
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .product-workflow__steps li::after {
+    content: "";
+    position: absolute;
+    left: 47px;
+    top: 34px;
+    bottom: -1px;
+    width: 1px;
+    background: linear-gradient(var(--accent), var(--border-soft));
+    opacity: 0.48;
+  }
+
+  .product-workflow__steps li:last-child::after {
+    bottom: 34px;
+  }
+
+  .product-workflow__marker {
+    position: absolute;
+    left: 41px;
+    top: 29px;
+    z-index: 1;
+    width: 13px;
+    height: 13px;
+    border: 2px solid color-mix(in srgb, var(--accent) 86%, var(--text-main));
+    border-radius: 50%;
+    background: var(--bg-page);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-soft) 72%, transparent);
+  }
+
+  .product-capabilities {
+    width: 100%;
+    display: grid;
+    gap: clamp(28px, 4vw, 48px);
+  }
+
+  .product-capabilities__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .product-capability-group {
+    display: grid;
+    gap: clamp(22px, 3vw, 34px);
+    padding: clamp(24px, 3vw, 36px);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 82%, transparent), transparent),
+      color-mix(in srgb, var(--surface-card) 58%, transparent);
+  }
+
+  .product-capability-group__intro h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 1.12rem + 1.1vw, 2.2rem);
+    font-weight: 500;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .product-capability-group__intro p {
+    margin-top: 14px;
+    font-size: 0.98rem;
+    line-height: 1.68;
+  }
+
+  .product-feature-grid {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid color-mix(in srgb, var(--border-soft) 86%, transparent);
+  }
+
+  .product-feature,
+  .product-list__item {
+    padding: 20px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-soft) 86%, transparent);
+  }
+
+  .product-feature:last-child,
+  .product-list__item:last-child {
+    border-bottom: 0;
+  }
+
+  .product-feature h4,
+  .product-list__item h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.18rem, 1.08rem + 0.28vw, 1.36rem);
+    font-weight: 500;
+    line-height: 1.28;
+  }
+
+  .product-feature p,
+  .product-list__item p {
+    margin-top: 10px;
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+
+  .product-two-column {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: start;
+  }
+
+  .product-list {
+    display: grid;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .product-section--closing {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: clamp(28px, 5vw, 72px);
+    width: 100%;
+    padding: clamp(34px, 5vw, 64px) 0 0;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .product-section--closing > div {
+    width: min(100%, 700px);
+  }
+
+  .product-section--closing .button {
+    flex: none;
+    min-width: 152px;
+  }
+
+  @media (max-width: 1080px) {
+    .product-hero {
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.9fr);
+      gap: 32px;
+    }
+
+    .product-hero h1 {
+      font-size: clamp(3rem, 1.5rem + 5vw, 5.8rem);
+    }
+
+    .product-hero__visual {
+      width: min(100%, 520px);
+    }
+
+    .product-bento__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(250px, 0.88fr);
+    }
+
+  }
+
+  @media (max-width: 900px) {
+    .product-hero,
+    .product-workflow,
+    .product-two-column {
+      grid-template-columns: 1fr;
+    }
+
+    .product-hero {
+      min-height: auto;
+      padding-top: 42px;
+    }
+
+    .product-hero__visual {
+      width: min(100%, 680px);
+      justify-self: start;
+      transform: none;
+    }
+
+    .product-principles,
+    .product-capabilities__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .product-principle {
+      min-height: auto;
+    }
+
+    .product-principle + .product-principle {
+      border-top: 1px solid color-mix(in srgb, var(--border-soft) 82%, transparent);
+      border-left: 0;
+    }
+
+    .product-principle span {
+      margin-bottom: 28px;
+    }
+
+    .product-bento__grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: none;
+    }
+
+    .product-shot--large {
+      grid-row: auto;
+    }
+
+    .product-shot--compact {
+      min-height: 280px;
+    }
+
+    .product-section__intro {
+      position: static;
+    }
+
+    .product-section--closing {
+      display: grid;
+      align-items: start;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .product-main {
+      gap: 62px;
+      margin-top: 70px;
+    }
+
+    .product-hero {
+      gap: 30px;
+      padding-top: 22px;
+    }
+
+    .product-hero h1 {
+      font-size: clamp(2.62rem, 1.68rem + 7vw, 4rem);
+      line-height: 1.06;
+    }
+
+    .product-hero__summary {
+      margin-top: 22px;
+      font-size: 1rem;
+    }
+
+    .product-hero__actions {
+      margin-top: 24px;
+    }
+
+    .product-hero__actions .button {
+      flex: 1 1 150px;
+      width: auto;
+    }
+
+    .product-hero__visual {
+      max-height: 360px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 24px 70px color-mix(in srgb, #000 26%, transparent);
+    }
+
+    .product-hero__visual img {
+      transform: translateY(-7%) scale(1.04);
+    }
+
+    .product-story {
+      gap: 64px;
+    }
+
+    .product-section {
+      width: 100%;
+    }
+
+    .product-section h2 {
+      font-size: clamp(1.78rem, 1.25rem + 4.6vw, 2.75rem);
+    }
+
+    .product-shot {
+      border-radius: var(--radius-md);
+    }
+
+    .product-shot--compact {
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .product-shot--compact figcaption,
+    .product-shot--compact picture {
+      width: 100%;
+    }
+
+    .product-shot--compact picture {
+      min-width: 0;
+      margin-top: 0;
+    }
+
+    .product-shot--compact img {
+      transform: translateY(5%);
+    }
+
+    .product-shot--large picture {
+      width: min(78%, 380px);
+      max-height: 430px;
+    }
+
+    .product-shot figcaption {
+      padding: 22px;
+    }
+
+    .product-shot figcaption span {
+      font-size: 1.34rem;
+    }
+
+    .product-feature,
+    .product-list__item {
+      padding: 18px 0;
+    }
+
+    .product-workflow__steps li {
+      min-height: auto;
+      padding: 22px 0 22px 64px;
+    }
+
+    .product-workflow__steps li::before {
+      left: 0;
+      top: 25px;
+    }
+
+    .product-workflow__steps li::after {
+      left: 43px;
+      top: 28px;
+    }
+
+    .product-workflow__marker {
+      left: 37px;
+      top: 23px;
+    }
+
+    .product-section--closing {
+      padding: 28px 0 0;
+    }
+
+    .product-section--closing .button {
+      width: 100%;
+    }
+  }
+</style>

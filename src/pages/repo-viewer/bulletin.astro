@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import FaqSection from "../../components/FaqSection.astro";
+import Footer from "../../components/Footer.astro";
+import HeroBanner from "../../components/HeroBanner.astro";
+import SiteNav from "../../components/SiteNav.astro";
+import { loadBulletinData } from "../../data/load-bulletin";
+
+const bulletin = loadBulletinData();
+---
+
+<BaseLayout title="站点公告">
+  <div class="app-shell">
+    <SiteNav navigation={bulletin.navigation} />
+
+    <main class="main-layout">
+      <HeroBanner hero={bulletin.hero} />
+      <FaqSection faq={bulletin.faq} />
+    </main>
+  </div>
+  <Footer />
+</BaseLayout>

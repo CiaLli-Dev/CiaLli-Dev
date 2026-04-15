@@ -1,0 +1,118 @@
+---
+import { getImage } from "astro:assets";
+import Icon from "./Icon.astro";
+import heroDarkImage from "../assets/hero-dark.png";
+import heroLightImage from "../assets/hero-light.png";
+import type { ImageMetadata } from "astro";
+import type { HeroData } from "../data/types";
+
+const { hero } = Astro.props as { hero: HeroData };
+
+const actionClass: Record<"primary" | "secondary" | "text", string> = {
+  primary: "button button--filled",
+  secondary: "button button--tonal",
+  text: "button button--text",
+};
+
+const splitHeroActions = hero.actions.slice(0, 2);
+const heroSizes = "(min-width: 1080px) 760px, (min-width: 901px) 42vw, 1px";
+const heroWidths = [380, 760, 1275] as const;
+
+const createSrcSet = (sources: { src: string }[]) =>
+  sources.map((source, index) => `${source.src} ${heroWidths[index]}w`).join(", ");
+
+async function getHeroSources(src: ImageMetadata) {
+  const [avifSources, pngSources] = await Promise.all([
+    Promise.all(heroWidths.map((width) => getImage({ src, width, format: "avif" }))),
+    Promise.all(heroWidths.map((width) => getImage({ src, width, format: "png" }))),
+  ]);
+
+  return {
+    avifSrcSet: createSrcSet(avifSources),
+    pngSrcSet: createSrcSet(pngSources),
+    fallbackSrc: pngSources[1].src,
+  };
+}
+
+const [heroDarkSources, heroLightSources] = await Promise.all([
+  getHeroSources(heroDarkImage),
+  getHeroSources(heroLightImage),
+]);
+
+function isExternal(url: string): boolean {
+  return /^https?:\/\//.test(url);
+}
+---
+
+<section class="hero-split" data-reveal style="--delay: 40ms;">
+  <div class="hero-split__left">
+    <div class="hero-split__left-content">
+      <h1 class="hero-split__title">
+        {hero.headline[0]}
+        <br />
+        {hero.headline[1]}
+      </h1>
+      <p class="hero-split__project">
+        {hero.project.prefix}
+        {" "}
+        <a
+          class="hero-split__project-link"
+          href={hero.project.url}
+          target={isExternal(hero.project.url) ? "_blank" : undefined}
+          rel={isExternal(hero.project.url) ? "noopener noreferrer" : undefined}
+        >
+          {hero.project.label}
+        </a>
+        {" "}
+        {hero.project.suffix}
+      </p>
+      {hero.summary && <p class="hero-split__summary">{hero.summary}</p>}
+      <div class="hero-split__actions">
+        {
+          splitHeroActions.map((action) => (
+            <a
+              class={actionClass[action.variant]}
+              href={action.url}
+              target={isExternal(action.url) ? "_blank" : undefined}
+              rel={isExternal(action.url) ? "noopener noreferrer" : undefined}
+            >
+              <span>{action.label}</span>
+              {action.variant === "text" ? "" : <Icon name="arrow-up-right" />}
+            </a>
+          ))
+        }
+      </div>
+      <p class="hero-split__footnote">最近更新：{hero.updatedAt}</p>
+    </div>
+  </div>
+
+  <aside class="hero-split__right" aria-label="站点视觉示意">
+    <div class="hero-split__media">
+      <picture>
+        <source
+          media="(min-width: 901px) and (prefers-color-scheme: dark)"
+          type="image/avif"
+          srcset={heroDarkSources.avifSrcSet}
+          sizes={heroSizes}
+        />
+        <source
+          media="(min-width: 901px) and (prefers-color-scheme: dark)"
+          type="image/png"
+          srcset={heroDarkSources.pngSrcSet}
+          sizes={heroSizes}
+        />
+        <source media="(min-width: 901px)" type="image/avif" srcset={heroLightSources.avifSrcSet} sizes={heroSizes} />
+        <source media="(min-width: 901px)" type="image/png" srcset={heroLightSources.pngSrcSet} sizes={heroSizes} />
+        <img
+          class="hero-visual"
+          src={heroLightSources.fallbackSrc}
+          alt={hero.visualAlt}
+          decoding="async"
+          fetchpriority="high"
+          width="1275"
+          height="1606"
+        />
+      </picture>
+    </div>
+  </aside>
+</section>

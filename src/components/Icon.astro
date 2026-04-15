@@ -1,0 +1,52 @@
+---
+interface Props {
+  name:
+    | "arrow-up-right"
+    | "check-circle"
+    | "clock"
+    | "info"
+    | "layers"
+    | "link"
+    | "moon"
+    | "spark"
+    | "sun"
+    | "warning";
+  class?: string;
+  title?: string;
+}
+
+const { name, title } = Astro.props as Props;
+const className = Astro.props.class ?? "";
+
+const paths: Record<Props["name"], string> = {
+  "arrow-up-right":
+    '<path d="M7 17L17 7"/><path d="M9 7h8v8"/>',
+  "check-circle":
+    '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>',
+  clock:
+    '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 10v6"/><path d="M12 7h.01"/>',
+  layers:
+    '<path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5L12 21l9-4.5"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L13 19"/>',
+  moon: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>',
+  spark:
+    '<path d="M12 3l1.7 4.8L18.5 9l-4.8 1.7L12 15.5l-1.7-4.8L5.5 9l4.8-1.2L12 3z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2.5"/><path d="M12 19.5V22"/><path d="M4.93 4.93l1.77 1.77"/><path d="M17.3 17.3l1.77 1.77"/><path d="M2 12h2.5"/><path d="M19.5 12H22"/><path d="M4.93 19.07l1.77-1.77"/><path d="M17.3 6.7l1.77-1.77"/>',
+  warning:
+    '<path d="M12 4l8 14H4l8-14z"/><path d="M12 9v4"/><path d="M12 16h.01"/>',
+};
+---
+
+<svg
+  class={`icon ${className}`}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.8"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden={title ? undefined : "true"}
+  role={title ? "img" : "presentation"}
+  set:html={title ? `<title>${title}</title>${paths[name]}` : paths[name]}
+/>

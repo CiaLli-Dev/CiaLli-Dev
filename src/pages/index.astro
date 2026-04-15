@@ -1,0 +1,27 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Footer from "../components/Footer.astro";
+import Icon from "../components/Icon.astro";
+import SiteNav from "../components/SiteNav.astro";
+import { getHomeNavigation } from "../data/home-navigation";
+
+const navigation = getHomeNavigation();
+---
+
+<BaseLayout title="CiaLli†Dev" description="CiaLli†Dev 品牌入口。">
+  <div class="app-shell">
+    <SiteNav navigation={navigation} />
+
+    <main class="main-layout">
+      <section class="home-entry" data-reveal style="--delay: 40ms;">
+        <p class="overline">CiaLli†Dev</p>
+        <h1>Repo Viewer</h1>
+        <a class="button button--filled" href="/repo-viewer">
+          <span>了解产品</span>
+          <Icon name="arrow-up-right" />
+        </a>
+      </section>
+    </main>
+  </div>
+  <Footer />
+</BaseLayout>
